@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deconz-deployment
+  labels:
+    appName: deconz
+spec:
+  selector:
+    matchLabels:
+      app: deconz
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: deconz
+    spec:
+      containers:
+        - name: deconz
+          image: marthoc/deconz:latest
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+            - containerPort: 6080
+          env:
+            - name: DECONZ_WEB_PORT
+              value: "80"
+            - name: DECONZ_WS_PORT
+              value: "443"
+            - name: DECONZ_VNC_MODE
+              value: "1"
+            - name: DECONZ_NOVNC_PORT
+              value: "6080"
+            - name: DECONZ_UPNP
+              value: "1"
+            - name: DEBUG_INFO
+              value: "1"
+            - name: DEBUG_APS
+              value: "0"
+            - name: DEBUG_ZCL
+              value: "0"
+            - name: DEBUG_ZDP
+              value: "0"
+            - name: DEBUG_OTAU
+              value: "0"
+            - name: TZ
+              value: "UTC"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: deconz-vol
+              mountPath: /root/.local/share/dresden-elektronik/deCONZ
+            - name: deconz-otau
+              mountPath: /root/otau
+            - name: conbee
+              mountPath: /dev/ttyACM0
+      volumes:
+        - name: deconz-vol
+          hostPath:
+            path: /home/pi/deconz/data
+            type: DirectoryOrCreate
+        - name: deconz-otau
+          hostPath:
+            path: /home/pi/deconz/otau
+            type: DirectoryOrCreate
+        - name: conbee
+          hostPath:
+            path: /dev/serial/by-id/usb-dresden_elektronik_ingenieurtechnik_GmbH_ConBee_II_DE1234567-if00
